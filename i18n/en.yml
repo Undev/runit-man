@@ -4,8 +4,6 @@ en:
     title: "%{p1} - %{p2}"
     header: "%{p1}: %{p2}"
     error: Error encountered while accessing resource
-    errors:
-      invalid_encoding: "File contains octets that cannot be parsed as UTF-8 character sequences."
     loading: "Please wait while loading&hellip;"
     footer: "State of services updated automatically every %{sec} seconds."
     services:

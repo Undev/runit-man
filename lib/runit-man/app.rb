@@ -9,6 +9,11 @@ require 'file/tail'
 require 'runit-man/helpers'
 require 'runit-man/version'
 
+if RUBY_VERSION >= '1.9'
+  Encoding.default_external = "utf-8"
+  Encoding.default_internal = "utf-8"
+end
+
 class RunitMan < Sinatra::Base
   VERSION       = RunitManVersion::VERSION
   MIN_TAIL      = 100
@@ -123,20 +128,10 @@ class RunitMan < Sinatra::Base
     srv   = ServiceInfo[name]
     return nil if srv.nil? || !srv.logged?
     text = ''
-    begin
-      text.force_encoding('utf-8') if text.respond_to?(:force_encoding)
-      File::Tail::Logfile.open(srv.log_file_location, :backward => count, :return_if_eof => true) do |log|
-        log.tail do |line|
-          if line.respond_to?(:force_encoding)
-            line.force_encoding('utf-8')
-            raise ArgumentError.new('wrong encoding') unless line.valid_encoding?
-          end
-          line.force_encoding('utf-8') if line.respond_to?(:force_encoding)
-          text += line
-        end
+    File::Tail::Logfile.open(srv.log_file_location, :backward => count, :return_if_eof => true) do |log|
+      log.tail do |line|
+        text += line
       end
-    rescue ArgumentError
-      text = I18n.t('runit.errors.invalid_encoding')
     end
 
     {
@@ -154,12 +149,6 @@ class RunitMan < Sinatra::Base
     file_path = request.GET['file']
     return nil unless all_files_to_view.include?(file_path)
     text = IO.read(file_path)
-    begin
-      text.force_encoding('utf-8') if text.respond_to?(:force_encoding)
-      raise ArgumentError.new('wrong encoding') unless text.valid_encoding?
-    rescue ArgumentError
-      text = I18n.t('runit.errors.invalid_encoding')
-    end
     {
        :name => file_path,
        :text => text

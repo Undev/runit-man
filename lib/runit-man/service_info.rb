@@ -294,7 +294,11 @@ private
 
     def real_data_from_file(file_name)
       return nil unless File.readable?(file_name)
-      data = IO.read(file_name)
+      if RUBY_VERSION >= '1.9'
+        data = IO.read(file_name, :external_encoding => 'ASCII-8BIT')
+      else
+        data = IO.read(file_name)
+      end
       data.chomp! unless data.nil?
       data.empty? ? nil : data
     end
