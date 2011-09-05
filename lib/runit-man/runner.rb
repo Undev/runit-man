@@ -5,6 +5,7 @@ RunitMan.set :active_services_directory, RunitMan::DEFAULT_ACTIVE_SERVICES_DIR
 RunitMan.set :all_services_directory,    RunitMan::DEFAULT_ALL_SERVICES_DIR
 RunitMan.set :runit_logger,              RunitMan::DEFAULT_LOGGER
 RunitMan.set :rackup_command_line,       false
+RunitMan.set :read_write_mode,           true
 
 OptionParser.new { |op|
   op.banner = 'Usage: runit-man <options>'
@@ -13,6 +14,7 @@ OptionParser.new { |op|
   op.on('-s server') { |val| RunitMan.set :server, val }
   op.on('-p port')   { |val| RunitMan.set :port, val.to_i }
   op.on('-b addr')   { |val| RunitMan.set :bind, val } if RunitMan.respond_to?(:bind)
+  op.on('-m mode')   { |val| RunitMan.set :read_write_mode, false if val == 'read-only' } 
   op.separator 'runit options:'
   op.on('-a active_services_directory (/etc/service by default)') { |val| RunitMan.set :active_services_directory, val }
   op.on('-f all_services_directory (/etc/sv by default)')         { |val| RunitMan.set :all_services_directory, val }

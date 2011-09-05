@@ -98,6 +98,7 @@ class RunitMan < Sinatra::Base
   end
 
   before do
+    @read_write_mode = RunitMan.read_write_mode
     @scripts = []
     base_content_type = CONTENT_TYPES.keys.detect do |t|
       request.env['REQUEST_URI'] =~ /\.#{Regexp.escape(t.to_s)}$/
@@ -253,21 +254,38 @@ class RunitMan < Sinatra::Base
     $stdout.flush
   end
 
+  def log_denied_action(name, text)
+    env  = request.env
+    addr = env.include?('X_REAL_IP') ? env['X_REAL_IP'] : env['REMOTE_ADDR']
+    $stdout.puts "#{addr} - - [#{Time.now}] \"Receive #{text} for #{name}. Denied.\""
+    $stdout.flush
+  end
+
   post '/:name/signal/:signal' do |name, signal|
-    service = ServiceInfo[name]
-    return not_found if service.nil?
-    service.send_signal(signal)
-    log_action(name, "send signal \"#{signal}\"")
-    ''
+    if @read_write_mode
+      service = ServiceInfo[name]
+      return not_found if service.nil?
+      service.send_signal(signal)
+      log_action(name, "send signal \"#{signal}\"")
+      ''
+    else
+      log_denied_action(name, "signal \"#{signal}\"")
+      ''
+    end
   end
 
   post '/:name/:action' do |name, action|
-    service = ServiceInfo[name]
-    action = "#{action}!".to_sym
-    return not_found if service.nil? || !service.respond_to?(action)
-    service.send(action)
-    log_action(name, action)
-    ''
+    if @read_write_mode
+      service = ServiceInfo[name]
+      action = "#{action}!".to_sym
+      return not_found if service.nil? || !service.respond_to?(action)
+      service.send(action)
+      log_action(name, action)
+      ''
+    else
+      log_denied_action(name, action)
+      ''
+    end
   end
 
   class << self
