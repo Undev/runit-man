@@ -109,6 +109,25 @@ class ServiceInfo::Base
     []
   end
 
+  def restart_dangerous?
+    changed_files_to_watch.size == 0 ? false : true
+  end
+
+  def changed_files_to_watch
+    return  [] if files_to_watch.empty?
+
+    changed_files = []
+    files_to_watch.each do |file|
+      mtime = File.stat(file).mtime
+
+      if mtime > @status.started_at
+        changed_files << file
+      end
+    end
+
+    return changed_files
+  end
+
   def send_signal(signal)
     return  unless supervise?
 
@@ -144,6 +163,21 @@ class ServiceInfo::Base
     end
   end
 
+  def files_to_watch
+    return []  unless File.directory?(files_to_watch_folder)
+
+    Dir.entries(files_to_watch_folder).select do |name|
+      File.symlink?(File.join(files_to_watch_folder, name))
+    end.map do |name|
+      File.expand_path(
+        File.readlink(File.join(files_to_watch_folder, name)),
+        files_to_watch_folder
+      )
+    end.select do |file_path|
+      File.file?(file_path)
+    end
+  end
+
   def allowed_signals
     return []  unless File.directory?(allowed_signals_folder)
 
@@ -163,6 +197,10 @@ protected
 
   def files_to_view_folder
     File.join(active_service_folder, 'runit-man', 'files-to-view')
+  end
+
+  def files_to_watch_folder
+    File.join(active_service_folder, 'runit-man', 'files-to-watch')
   end
 
   def urls_to_view_folder

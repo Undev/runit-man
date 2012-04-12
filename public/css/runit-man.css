@@ -20,6 +20,7 @@ form.service-action, form.service-signal
 span.inactive {color:gray;}
 span.down {color:#8a1f11;}
 span.run {color:#264409;}
+span.danger {color:red;}
 
 #services { text-align: center; }
 
