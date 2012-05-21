@@ -18,7 +18,7 @@ class ServiceInfo::Base
     data = {}
     [
       :name, :stat, :active?, :logged?, :switchable?,
-      :log_file_location, :log_pid, :watched_modified_files
+      :log_file_locations, :log_pid, :watched_modified_files
     ].each do |sym|
       data[sym] = send(sym)
     end
