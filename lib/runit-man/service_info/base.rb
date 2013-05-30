@@ -241,6 +241,16 @@ protected
     return nil  if cmd.nil?
 
     args = cmd.split(/\s+/).select { |arg| arg !~ /^\-/ }
+    # если в cmdline есть slogd 
+    # то проверяем запускает ли он svlogd
+    unless args.grep(/slogd/).empty?
+      while not args.empty?
+        # сразу после svlogd должна идти директория
+        # иначе возращаем nil
+        break if args.shift.match /svlogd/
+      end
+      return args 
+    end
     return nil  if args.shift !~ /#{Regexp.escape(logger_name)}/
 
     args
